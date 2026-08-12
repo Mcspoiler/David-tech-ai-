@@ -1,0 +1,6 @@
+{
+  "name": "AI Studio Chat Assistant",
+  "description": "A production-ready AI Chat application powered by Gemini with streaming responses, markdown rendering, code copying, conversation history, customizable system personas, dark/light theme, and export/import.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
