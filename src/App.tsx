@@ -241,6 +241,7 @@ export default function App() {
           systemInstruction: activePersona.systemPrompt,
           enableSearchGrounding,
           temperature: activePersona.temperature,
+          agentRouterApiKey: settings.agentRouterApiKey,
         }),
         signal: controller.signal,
       });

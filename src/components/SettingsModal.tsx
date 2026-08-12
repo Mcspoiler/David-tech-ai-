@@ -108,6 +108,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </select>
           </div>
 
+          {/* AgentRouter API Key Input */}
+          <div className="pt-2">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1 uppercase tracking-wider">
+              AgentRouter API Key
+            </label>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
+              Required for Claude 4.7 / 5.0 and ChatGPT 5.6 models. You can set it here or in server environment variables.
+            </p>
+            <input
+              type="password"
+              placeholder="sk-agentrouter-..."
+              value={settings.agentRouterApiKey || ''}
+              onChange={(e) =>
+                onUpdateSettings({ ...settings, agentRouterApiKey: e.target.value })
+              }
+              className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
           {/* Data Clearance */}
           <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
             <label className="block text-xs font-bold text-red-600 dark:text-red-400 mb-1 uppercase tracking-wider">

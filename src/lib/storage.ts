@@ -13,14 +13,18 @@ export interface AppSettings {
   enableSearchGrounding: boolean;
   fontSize: 'sm' | 'base' | 'lg';
   streamSpeed: 'fast' | 'normal';
+  agentRouterApiKey?: string;
+  agentRouterBaseUrl?: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  defaultModel: 'gemini-3.6-flash',
+  defaultModel: 'claude-5.0',
   defaultPersonaId: 'general',
   enableSearchGrounding: false,
   fontSize: 'base',
   streamSpeed: 'fast',
+  agentRouterApiKey: '',
+  agentRouterBaseUrl: 'https://api.agentrouter.ai/v1',
 };
 
 export function getStoredConversations(): ChatConversation[] {

@@ -39,25 +39,199 @@ app.get('/api/health', (_req: Request, res: Response) => {
   });
 });
 
+// Helper to check if model is an AgentRouter model
+function isAgentRouterModel(modelName: string): boolean {
+  const m = modelName.toLowerCase();
+  return (
+    m.includes('claude') ||
+    m.includes('chatgpt') ||
+    m.includes('gpt') ||
+    m.includes('agentrouter')
+  );
+}
+
+// Handler for AgentRouter / OpenAI compatible endpoint
+async function streamAgentRouterResponse(
+  reqBody: any,
+  res: Response,
+  sendEvent: (data: any) => void
+) {
+  const {
+    messages,
+    model = 'claude-5.0',
+    systemInstruction = 'You are a helpful, knowledgeable AI assistant. Use markdown formatting effectively.',
+    temperature = 0.7,
+    agentRouterApiKey: clientApiKey,
+  } = reqBody;
+
+  const apiKey =
+    clientApiKey ||
+    process.env.AGENTROUTER_API_KEY ||
+    process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      'AgentRouter API key is missing. Please set your AgentRouter API key in preferences (Settings modal) or environment variable AGENTROUTER_API_KEY.'
+    );
+  }
+
+  let baseUrl = (
+    process.env.AGENTROUTER_BASE_URL || 'https://api.agentrouter.ai/v1'
+  ).replace(/\/+$/, '');
+
+  // Format messages into OpenAI format
+  const formattedMessages: any[] = [];
+  if (systemInstruction) {
+    formattedMessages.push({ role: 'system', content: systemInstruction });
+  }
+
+  messages.forEach((msg: any) => {
+    const role = msg.role === 'assistant' ? 'assistant' : 'user';
+
+    // Handle multimodal image attachments
+    if (
+      Array.isArray(msg.attachments) &&
+      msg.attachments.length > 0 &&
+      role === 'user'
+    ) {
+      const contentParts: any[] = [];
+      if (msg.content) {
+        contentParts.push({ type: 'text', text: msg.content });
+      }
+      msg.attachments.forEach((att: any) => {
+        if (att.url && typeof att.url === 'string') {
+          contentParts.push({
+            type: 'image_url',
+            image_url: { url: att.url },
+          });
+        }
+      });
+      formattedMessages.push({ role, content: contentParts });
+    } else {
+      formattedMessages.push({ role, content: msg.content || '' });
+    }
+  });
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: formattedMessages,
+      stream: true,
+      temperature: Math.max(0, Math.min(1, Number(temperature) || 0.7)),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let parsedMsg = errorText;
+    try {
+      const errJson = JSON.parse(errorText);
+      parsedMsg = errJson.error?.message || errJson.message || errorText;
+    } catch (e) {}
+    throw new Error(`AgentRouter API Error (${response.status}): ${parsedMsg}`);
+  }
+
+  if (!response.body) {
+    throw new Error('No response stream received from AgentRouter API.');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const dataStr = trimmed.slice(5).trim();
+
+      if (dataStr === '[DONE]') {
+        break;
+      }
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        const chunkText =
+          parsed.choices?.[0]?.delta?.content ||
+          parsed.choices?.[0]?.text ||
+          '';
+        if (chunkText) {
+          sendEvent({ chunk: chunkText });
+        }
+      } catch (e) {
+        // Skip incomplete JSON lines
+      }
+    }
+  }
+
+  sendEvent({ done: true });
+  res.write('data: [DONE]\n\n');
+  res.end();
+}
+
 // Auto Title Generation API
 app.post('/api/title', async (req: Request, res: Response) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, agentRouterApiKey: clientApiKey } = req.body;
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const ai = getGeminiClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: `Generate a short, concise 3 to 5 word title for a conversation starting with this user message: "${prompt.slice(0, 300)}". Output ONLY the title text, with no quotes or punctuation.`,
-      config: {
-        temperature: 0.3,
-      },
-    });
+    const arKey = clientApiKey || process.env.AGENTROUTER_API_KEY || process.env.OPENAI_API_KEY;
+    if (arKey) {
+      const baseUrl = (process.env.AGENTROUTER_BASE_URL || 'https://api.agentrouter.ai/v1').replace(/\/+$/, '');
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${arKey}`,
+        },
+        body: JSON.stringify({
+          model: 'claude-4.7',
+          messages: [
+            {
+              role: 'system',
+              content: 'Generate a short 3 to 5 word title for a conversation starting with the prompt provided. Output ONLY the title text, with no quotes or punctuation.',
+            },
+            { role: 'user', content: prompt.slice(0, 300) },
+          ],
+          temperature: 0.3,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const title = data.choices?.[0]?.message?.content?.trim();
+        if (title) return res.json({ title });
+      }
+    }
 
-    const title = response.text?.trim() || 'New Conversation';
-    return res.json({ title });
+    if (process.env.GEMINI_API_KEY) {
+      const ai = getGeminiClient();
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: `Generate a short, concise 3 to 5 word title for a conversation starting with this user message: "${prompt.slice(0, 300)}". Output ONLY the title text, with no quotes or punctuation.`,
+        config: {
+          temperature: 0.3,
+        },
+      });
+
+      const title = response.text?.trim() || 'New Conversation';
+      return res.json({ title });
+    }
+
+    return res.json({ title: 'New Conversation' });
   } catch (error: any) {
     console.error('Title generation error:', error);
     return res.json({ title: 'New Conversation' });
@@ -79,10 +253,11 @@ app.post('/api/chat', async (req: Request, res: Response) => {
   try {
     const {
       messages,
-      model = 'gemini-3.6-flash',
+      model = 'claude-5.0',
       systemInstruction = 'You are a helpful, knowledgeable AI assistant. Use markdown formatting effectively.',
       enableSearchGrounding = false,
       temperature = 0.7,
+      agentRouterApiKey,
     } = req.body;
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -91,6 +266,21 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       return res.end();
     }
 
+    // Route to AgentRouter if requested model is Claude/ChatGPT or AgentRouter key is present
+    if (isAgentRouterModel(model) || agentRouterApiKey || process.env.AGENTROUTER_API_KEY) {
+      try {
+        await streamAgentRouterResponse(req.body, res, sendEvent);
+        return;
+      } catch (agentErr: any) {
+        // If AgentRouter call failed and Gemini key exists, log and inform user
+        console.error('AgentRouter request error:', agentErr.message);
+        sendEvent({ error: agentErr.message });
+        res.write('data: [DONE]\n\n');
+        return res.end();
+      }
+    }
+
+    // Fallback to Gemini
     const ai = getGeminiClient();
 
     // Transform messages array into GenAI contents format
@@ -137,7 +327,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 
     // Call Gemini generateContentStream
     const responseStream = await ai.models.generateContentStream({
-      model: model || 'gemini-3.6-flash',
+      model: model.includes('gemini') ? model : 'gemini-3.6-flash',
       contents: formattedContents,
       config,
     });

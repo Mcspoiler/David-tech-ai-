@@ -7,7 +7,8 @@ An intelligent, full-stack ChatGPT/Claude-style web application built with **Rea
 ## 🌟 Key Features
 
 - 💬 **ChatGPT / Claude-Style Interface**: Clean, responsive layout with real-time streaming AI responses.
-- 🎭 **Specialized AI Personas**: Switch between pre-configured AI personas (Coding Expert, Nutrition & Fitness Coach, Legal Researcher, Technical Writer, Data Analyst, or Custom Persona).
+- 🎭 **Specialized AI Personas & Models**: Switch between models including **Claude 5.0**, **Claude 4.7**, **ChatGPT 5.6**, **Claude 3.7 Sonnet**, **GPT-4o**, and **Gemini 3.6 Flash**.
+- 🔑 **AgentRouter API Key Support**: Configure `AGENTROUTER_API_KEY` in environment variables or directly inside the in-app Preferences/Settings modal to query Claude and ChatGPT models.
 - 🚀 **Real-Time Streaming Responses**: Fast, progressive token rendering using Server-Sent Events (SSE).
 - 🎨 **Markdown & Code Highlighting**: Full Markdown rendering with syntax highlighting and 1-click **Copy Code** buttons.
 - 🌐 **Google Web Search Grounding**: Optional web search grounding mode to retrieve real-time factual citations and source links.
