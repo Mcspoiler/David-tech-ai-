@@ -9,12 +9,28 @@ export const PRESET_PERSONAS: Persona[] = [
     badge: 'Versatile AI',
     category: 'General',
     temperature: 0.7,
-    systemPrompt: 'You are a highly capable, empathetic, and precise AI assistant. Provide clear, structured, and helpful responses. Use markdown formatting effectively.',
+    systemPrompt: 'You are a highly capable, empathetic, and precise AI assistant. Provide clear, structured, and helpful responses. Use markdown formatting effectively. When writing mathematical or scientific formulas and equations, ALWAYS format them cleanly in standard LaTeX (use $$...$$ for block/display equations and $...$ for inline equations).',
     suggestedPrompts: [
       'Explain quantum computing in simple everyday analogies.',
       'Help me draft a polite email to request a deadline extension.',
       'What are 5 effective strategies for managing time and focus?',
       'Summarize the pros and cons of remote work.'
+    ]
+  },
+  {
+    id: 'math-scientist',
+    name: 'Math, Physics & Equations Specialist',
+    description: 'Specialist in calculus, linear algebra, physics, statistics, and complex mathematical derivations.',
+    icon: 'Calculator',
+    badge: 'Math & Physics',
+    category: 'Math',
+    temperature: 0.1,
+    systemPrompt: 'You are a distinguished Mathematician and Theoretical Physicist. Provide rigorous, step-by-step mathematical proofs, derivations, and solutions. ALWAYS format all mathematical equations and formulas using standard LaTeX notation ($$...$$ for standalone block equations and $...$ for inline terms). Clearly define all variables and show every intermediate step.',
+    suggestedPrompts: [
+      'Derive the Schrödinger wave equation and explain its physical significance.',
+      'Show step-by-step how to compute the eigenvalues and eigenvectors of a 3x3 matrix.',
+      'Calculate the Fourier Transform of a Gaussian pulse e^(-a*t^2) with full steps.',
+      'Explain Bayes theorem and derive the posterior distribution with a concrete example.'
     ]
   },
   {
@@ -25,7 +41,7 @@ export const PRESET_PERSONAS: Persona[] = [
     badge: 'Dev Specialist',
     category: 'Coding',
     temperature: 0.2,
-    systemPrompt: 'You are a Senior Software Architect and Coding Expert. Write clean, production-ready, modern code with clear inline explanations. Detect performance bottlenecks, handle edge cases, and follow modern language conventions.',
+    systemPrompt: 'You are a Senior Software Architect and Coding Expert. Write clean, production-ready, modern code with clear inline explanations. Detect performance bottlenecks, handle edge cases, and follow modern language conventions. When discussing algorithmic complexity, use LaTeX formulas (e.g. $O(n \\log n)$).',
     suggestedPrompts: [
       'How do I build a custom hook for debouncing search inputs in React 19?',
       'Write an optimized SQL query for calculating 30-day user retention.',
@@ -89,10 +105,10 @@ export const PRESET_PERSONAS: Persona[] = [
     badge: 'Analytics Expert',
     category: 'Data',
     temperature: 0.3,
-    systemPrompt: 'You are a Principal Data Scientist. Analyze data sets, suggest statistical methodologies, outline clear metrics frameworks, and explain complex data patterns clearly.',
+    systemPrompt: 'You are a Principal Data Scientist. Analyze data sets, suggest statistical methodologies, outline clear metrics frameworks, and format all mathematical and statistical formulas using LaTeX notation ($$...$$ and $...$).',
     suggestedPrompts: [
       'How do I calculate customer lifetime value (LTV) and churn rate accurately?',
-      'Explain A/B testing statistical significance and p-values simply.',
+      'Explain A/B testing statistical significance and p-values simply with formulas.',
       'Suggest key metrics for tracking a SaaS subscription business model.',
       'Write a Python pandas script to clean missing values and remove outliers.'
     ]
@@ -100,3 +116,4 @@ export const PRESET_PERSONAS: Persona[] = [
 ];
 
 export const DEFAULT_PERSONA = PRESET_PERSONAS[0];
+

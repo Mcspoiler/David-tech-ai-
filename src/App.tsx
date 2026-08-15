@@ -399,6 +399,16 @@ export default function App() {
     handleSendMessage(newPrompt);
   };
 
+  // Handle Model Selection
+  const handleSelectModel = (modelId: string) => {
+    setCurrentModel(modelId);
+    if (activeId) {
+      setConversations((prev) =>
+        prev.map((c) => (c.id === activeId ? { ...c, model: modelId, updatedAt: Date.now() } : c))
+      );
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#faf9f5] dark:bg-[#0c0b09] text-zinc-900 dark:text-zinc-100 font-sans antialiased">
       {/* Sidebar Navigation */}
@@ -422,7 +432,7 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
         <Header
           currentModel={currentModel}
-          onSelectModel={setCurrentModel}
+          onSelectModel={handleSelectModel}
           activePersona={activePersona}
           onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
           enableSearchGrounding={enableSearchGrounding}
@@ -438,6 +448,8 @@ export default function App() {
         <ChatArea
           chat={activeChat}
           activePersona={activePersona}
+          currentModel={currentModel}
+          onSelectModel={handleSelectModel}
           isStreaming={isStreaming}
           onSendMessage={handleSendMessage}
           onRegenerate={handleRegenerate}
@@ -451,6 +463,8 @@ export default function App() {
           onStopStreaming={handleStopStreaming}
           activePersona={activePersona}
           onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
+          currentModel={currentModel}
+          onSelectModel={handleSelectModel}
         />
       </div>
 

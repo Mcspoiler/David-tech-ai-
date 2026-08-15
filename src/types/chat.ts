@@ -47,15 +47,20 @@ export interface Persona {
   suggestedPrompts: string[];
   badge: string;
   temperature: number;
-  category: 'General' | 'Coding' | 'Health' | 'Legal' | 'Writing' | 'Data' | 'Custom';
+  category: 'General' | 'Coding' | 'Health' | 'Legal' | 'Writing' | 'Data' | 'Math' | 'Custom';
 }
+
+export type ModelProvider = 'claude' | 'chatgpt' | 'gemini';
 
 export interface ModelOption {
   id: string;
   name: string;
+  provider: ModelProvider;
   description: string;
   badge: string;
   isPro?: boolean;
+  speed?: string;
+  reasoning?: string;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';

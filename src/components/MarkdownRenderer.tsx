@@ -1,17 +1,91 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css'; // modern dark theme for code
-import { Check, Copy } from 'lucide-react';
+import 'highlight.js/styles/github-dark.css';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 interface MarkdownRendererProps {
   content: string;
 }
 
-// Custom renderer for marked to build code blocks with copy buttons
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+// Function to preprocess and render LaTeX math expressions using KaTeX
+function renderMathInMarkdown(text: string): string {
+  if (!text) return '';
 
+  // 1. Preprocess code blocks marked as ```math or ```latex
+  let processed = text.replace(/```(?:math|latex)\n([\s\S]*?)```/g, (_match, equation) => {
+    try {
+      const rendered = katex.renderToString(equation.trim(), {
+        displayMode: true,
+        throwOnError: false,
+      });
+      return `<div class="katex-display-wrapper my-3 p-3 overflow-x-auto rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-900/15 dark:border-amber-500/25 text-center">${rendered}</div>`;
+    } catch {
+      return `<pre class="p-2 text-xs font-mono bg-zinc-900 text-amber-300 rounded">${equation}</pre>`;
+    }
+  });
+
+  // 2. Block equations: $$ ... $$
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (_match, equation) => {
+    try {
+      const rendered = katex.renderToString(equation.trim(), {
+        displayMode: true,
+        throwOnError: false,
+      });
+      return `<div class="katex-display-wrapper my-3 p-3 overflow-x-auto rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-900/15 dark:border-amber-500/25 text-center">${rendered}</div>`;
+    } catch {
+      return `$$${equation}$$`;
+    }
+  });
+
+  // 3. Block equations: \[ ... \]
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (_match, equation) => {
+    try {
+      const rendered = katex.renderToString(equation.trim(), {
+        displayMode: true,
+        throwOnError: false,
+      });
+      return `<div class="katex-display-wrapper my-3 p-3 overflow-x-auto rounded-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-900/15 dark:border-amber-500/25 text-center">${rendered}</div>`;
+    } catch {
+      return `\\[${equation}\\]`;
+    }
+  });
+
+  // 4. Inline equations: \( ... \)
+  processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (_match, equation) => {
+    try {
+      return katex.renderToString(equation.trim(), {
+        displayMode: false,
+        throwOnError: false,
+      });
+    } catch {
+      return `\\(${equation}\\)`;
+    }
+  });
+
+  // 5. Inline equations: $ ... $ (avoid matching escaped currency like \$ or multiple $$$)
+  // Only match $...$ when not surrounded by whitespace or empty
+  processed = processed.replace(/(?<!\\|\$)\$(?!\$)(\S(?:[\s\S]*?\S)?)\$(?!\$)/g, (_match, equation) => {
+    // Avoid single numbers or currency like $100
+    if (/^\d+(?:,\d{3})*(?:\.\d+)?$/.test(equation.trim())) {
+      return `$${equation}$`;
+    }
+    try {
+      return katex.renderToString(equation.trim(), {
+        displayMode: false,
+        throwOnError: false,
+      });
+    } catch {
+      return `$${equation}$`;
+    }
+  });
+
+  return processed;
+}
+
+// Custom renderer for marked to build code blocks with copy buttons and formulas
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // Configure marked options with hljs
   const htmlAndCodeBlocks = useMemo(() => {
     const codeBlocks: Array<{ id: number; lang: string; code: string }> = [];
@@ -28,7 +102,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         } else {
           highlighted = hljs.highlightAuto(text).value;
         }
-      } catch (e) {
+      } catch {
         highlighted = text;
       }
 
@@ -60,7 +134,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
       breaks: true,
     });
 
-    const rawHtml = marked.parse(content || '') as string;
+    // 1. Process math equations first
+    const contentWithMath = renderMathInMarkdown(content || '');
+
+    // 2. Parse markdown
+    const rawHtml = marked.parse(contentWithMath) as string;
     return { rawHtml, codeBlocks };
   }, [content]);
 
@@ -92,3 +170,4 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     />
   );
 };
+

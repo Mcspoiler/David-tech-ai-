@@ -10,6 +10,7 @@ import {
   Sliders,
   Check,
   Plus,
+  Calculator,
 } from 'lucide-react';
 import { Persona } from '../types/chat';
 import { PRESET_PERSONAS } from '../lib/personas';
@@ -46,6 +47,8 @@ export const PersonaModal: React.FC<PersonaModalProps> = ({
         return <Feather className="w-5 h-5 text-purple-500" />;
       case 'BarChart3':
         return <BarChart3 className="w-5 h-5 text-blue-500" />;
+      case 'Calculator':
+        return <Calculator className="w-5 h-5 text-amber-500" />;
       default:
         return <Sparkles className="w-5 h-5 text-indigo-500" />;
     }

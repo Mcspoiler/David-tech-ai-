@@ -100,11 +100,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }
               className="w-full px-3 py-2.5 text-xs font-medium rounded-xl bg-zinc-50 dark:bg-[#181714] border border-amber-900/15 dark:border-amber-500/20 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
             >
-              {MODEL_OPTIONS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} - {m.badge}
-                </option>
-              ))}
+              <optgroup label="Anthropic Claude Series">
+                {MODEL_OPTIONS.filter((m) => m.provider === 'claude').map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.badge})
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="OpenAI ChatGPT Series">
+                {MODEL_OPTIONS.filter((m) => m.provider === 'chatgpt').map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.badge})
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Google Gemini Series">
+                {MODEL_OPTIONS.filter((m) => m.provider === 'gemini').map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.badge})
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 

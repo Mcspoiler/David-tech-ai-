@@ -10,13 +10,19 @@ import {
   Feather,
   BarChart3,
   Lightbulb,
+  Bot,
+  CheckCircle2,
+  Calculator,
 } from 'lucide-react';
 import { ChatConversation, Persona } from '../types/chat';
 import { ChatMessageItem } from './ChatMessageItem';
+import { MODEL_OPTIONS, PROVIDER_META } from '../lib/models';
 
 interface ChatAreaProps {
   chat: ChatConversation | null;
   activePersona: Persona;
+  currentModel: string;
+  onSelectModel: (modelId: string) => void;
   isStreaming: boolean;
   onSendMessage: (text: string) => void;
   onRegenerate: () => void;
@@ -27,6 +33,8 @@ interface ChatAreaProps {
 export const ChatArea: React.FC<ChatAreaProps> = ({
   chat,
   activePersona,
+  currentModel,
+  onSelectModel,
   isStreaming,
   onSendMessage,
   onRegenerate,
@@ -36,6 +44,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+
+  const selectedModelObj =
+    MODEL_OPTIONS.find((m) => m.id === currentModel) || MODEL_OPTIONS[0];
 
   // Auto scroll to bottom when new messages arrive or while streaming
   useEffect(() => {
@@ -69,6 +80,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         return <Feather className="w-8 h-8 text-amber-500" />;
       case 'BarChart3':
         return <BarChart3 className="w-8 h-8 text-amber-600" />;
+      case 'Calculator':
+        return <Calculator className="w-8 h-8 text-amber-500" />;
       default:
         return <Sparkles className="w-8 h-8 text-amber-500 fill-amber-500/20" />;
     }
@@ -78,9 +91,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   if (!chat || chat.messages.length === 0) {
     return (
       <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center justify-center min-h-0 bg-[#faf9f5] dark:bg-[#0c0b09]">
-        <div className="max-w-2xl w-full text-center space-y-6 my-auto py-8">
+        <div className="max-w-2xl w-full text-center space-y-6 my-auto py-6">
           {/* Persona Header Card */}
-          <div className="inline-flex items-center justify-center p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-500/20 shadow-md shadow-amber-500/10 mb-2">
+          <div className="inline-flex items-center justify-center p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-500/20 shadow-md shadow-amber-500/10 mb-1">
             {getPersonaIcon(activePersona.icon)}
           </div>
 
@@ -96,8 +109,101 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             </p>
           </div>
 
+          {/* Quick Model Selector Cards: Claude vs ChatGPT vs Gemini */}
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#151411] border border-amber-900/10 dark:border-amber-500/20 shadow-xs text-left">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                Select AI Engine
+              </span>
+              <span className="text-[11px] text-zinc-500 font-medium">
+                Active: <strong className="text-amber-600 dark:text-amber-400">{selectedModelObj.name}</strong>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Claude Card */}
+              <button
+                onClick={() => onSelectModel('claude-5.0')}
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                  selectedModelObj.provider === 'claude'
+                    ? 'bg-amber-50/80 dark:bg-amber-950/50 border-amber-500 ring-2 ring-amber-500/20 shadow-sm'
+                    : 'bg-zinc-50 dark:bg-[#1c1a16] border-zinc-200 dark:border-zinc-800 hover:border-amber-400'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    Claude 5.0
+                  </span>
+                  {selectedModelObj.provider === 'claude' && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+                  Anthropic deep reasoning & code architecture.
+                </p>
+                <span className="inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
+                  Anthropic Flagship
+                </span>
+              </button>
+
+              {/* ChatGPT Card */}
+              <button
+                onClick={() => onSelectModel('chatgpt-5.6')}
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                  selectedModelObj.provider === 'chatgpt'
+                    ? 'bg-emerald-50/80 dark:bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm'
+                    : 'bg-zinc-50 dark:bg-[#1c1a16] border-zinc-200 dark:border-zinc-800 hover:border-emerald-400'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    ChatGPT 5.6
+                  </span>
+                  {selectedModelObj.provider === 'chatgpt' && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+                  OpenAI multi-step logic & fast throughput.
+                </p>
+                <span className="inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200">
+                  OpenAI Flagship
+                </span>
+              </button>
+
+              {/* Gemini Card */}
+              <button
+                onClick={() => onSelectModel('gemini-3.6-flash')}
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                  selectedModelObj.provider === 'gemini'
+                    ? 'bg-blue-50/80 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/20 shadow-sm'
+                    : 'bg-zinc-50 dark:bg-[#1c1a16] border-zinc-200 dark:border-zinc-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                    Gemini 3.6
+                  </span>
+                  {selectedModelObj.provider === 'gemini' && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
+                  Google multimodal streaming & search grounding.
+                </p>
+                <span className="inline-block mt-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-200/70 dark:bg-blue-900/60 text-blue-900 dark:text-blue-200">
+                  Google Flash
+                </span>
+              </button>
+            </div>
+          </div>
+
           {/* Interactive Suggested Prompts Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-left pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-left">
             {activePersona.suggestedPrompts.map((promptText, idx) => (
               <button
                 key={idx}
@@ -116,7 +222,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           </div>
 
           {/* Persona Switch Hint */}
-          <div className="pt-2 text-xs text-zinc-400 dark:text-zinc-500">
+          <div className="pt-1 text-xs text-zinc-400 dark:text-zinc-500">
             Want a different expert perspective?{' '}
             <button
               onClick={onOpenPersonaModal}
