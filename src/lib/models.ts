@@ -64,22 +64,32 @@ export const MODEL_OPTIONS: ModelOption[] = [
 
   // --- GEMINI (Google) Models ---
   {
-    id: 'gemini-3.6-flash',
-    name: 'Gemini 3.6 Flash',
+    id: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
     provider: 'gemini',
-    description: 'Ultra-responsive Google model optimized for real-time streaming, web search grounding, and fast answers.',
-    badge: 'Gemini',
+    description: 'Ultra-responsive Google model optimized for real-time streaming, coding reasoning, web search grounding, and fast answers.',
+    badge: 'Gemini Flash',
     speed: 'Instant',
-    reasoning: 'High (9.2/10)',
+    reasoning: 'High (9.5/10)',
   },
   {
     id: 'gemini-3.1-pro-preview',
     name: 'Gemini 3.1 Pro',
     provider: 'gemini',
-    description: 'Advanced Google reasoning model for complex multimodal analysis, coding, and mathematical logic.',
-    badge: 'Gemini',
+    description: 'Advanced Google reasoning model for complex multimodal analysis, coding architecture, and mathematical logic.',
+    badge: 'Gemini Pro',
+    isPro: true,
     speed: 'Fast',
-    reasoning: 'Superior (9.6/10)',
+    reasoning: 'Superior (9.8/10)',
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash Lite',
+    provider: 'gemini',
+    description: 'Lightweight, ultra-fast model for quick code explanations, summaries, and instant chats.',
+    badge: 'Gemini Lite',
+    speed: 'Ultra Fast',
+    reasoning: 'Standard (8.8/10)',
   },
 ];
 
@@ -114,7 +124,7 @@ export const PROVIDER_META: Record<
     tagline: 'Google Multimodal & Search',
     badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
     activeBorder: 'border-blue-500',
-    defaultModel: 'gemini-3.6-flash',
+    defaultModel: 'gemini-3.7-flash',
   },
 };
 

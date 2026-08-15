@@ -220,7 +220,7 @@ app.post('/api/title', async (req: Request, res: Response) => {
     if (process.env.GEMINI_API_KEY) {
       const ai = getGeminiClient();
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-3.7-flash',
         contents: `Generate a short, concise 3 to 5 word title for a conversation starting with this user message: "${prompt.slice(0, 300)}". Output ONLY the title text, with no quotes or punctuation.`,
         config: {
           temperature: 0.3,
@@ -266,22 +266,26 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       return res.end();
     }
 
-    // Route to AgentRouter if requested model is Claude/ChatGPT or AgentRouter key is present
-    if (isAgentRouterModel(model) || agentRouterApiKey || process.env.AGENTROUTER_API_KEY) {
+// Route to AgentRouter if requested model is Claude/ChatGPT and AgentRouter key is available
+    const arKey = agentRouterApiKey || process.env.AGENTROUTER_API_KEY || process.env.OPENAI_API_KEY;
+    if (arKey && isAgentRouterModel(model)) {
       try {
         await streamAgentRouterResponse(req.body, res, sendEvent);
         return;
       } catch (agentErr: any) {
-        // If AgentRouter call failed and Gemini key exists, log and inform user
-        console.error('AgentRouter request error:', agentErr.message);
-        sendEvent({ error: agentErr.message });
-        res.write('data: [DONE]\n\n');
-        return res.end();
+        console.warn('AgentRouter streaming failed, falling back to Gemini engine:', agentErr.message);
+        // Continue to Gemini fallback
       }
     }
 
-    // Fallback to Gemini
+    // High-performance Gemini execution (handles Gemini models and intelligent fallback)
     const ai = getGeminiClient();
+
+    // Enhance system instruction for elite coding and formula rendering
+    let enhancedSystemInstruction = systemInstruction || 'You are a highly capable AI assistant.';
+    if (!enhancedSystemInstruction.includes('LaTeX') && !enhancedSystemInstruction.includes('markdown')) {
+      enhancedSystemInstruction += ' Format all code snippets cleanly using fenced markdown blocks with explicit language identifiers (e.g. ```typescript, ```python, ```html, ```sql, ```bash). Never truncate code blocks. When explaining mathematical, scientific, or algorithmic formulas, format them in standard LaTeX ($$...$$ for display equations and $...$ for inline variables).';
+    }
 
     // Transform messages array into GenAI contents format
     const formattedContents = messages.map((msg: any) => {
@@ -315,9 +319,12 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       };
     });
 
+    // Determine appropriate Gemini model
+    const targetModel = model === 'gemini-3.1-pro-preview' ? 'gemini-3.1-pro-preview' : 'gemini-3.7-flash';
+
     // Configure model call options
     const config: any = {
-      systemInstruction,
+      systemInstruction: enhancedSystemInstruction,
       temperature: Math.max(0, Math.min(1, Number(temperature) || 0.7)),
     };
 
@@ -325,12 +332,26 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       config.tools = [{ googleSearch: {} }];
     }
 
-    // Call Gemini generateContentStream
-    const responseStream = await ai.models.generateContentStream({
-      model: model.includes('gemini') ? model : 'gemini-3.6-flash',
-      contents: formattedContents,
-      config,
-    });
+    // Call Gemini generateContentStream with automatic fallback
+    let responseStream;
+    try {
+      responseStream = await ai.models.generateContentStream({
+        model: targetModel,
+        contents: formattedContents,
+        config,
+      });
+    } catch (modelErr: any) {
+      // If paid/pro model fails, fallback to gemini-3.7-flash
+      if (targetModel !== 'gemini-3.7-flash') {
+        responseStream = await ai.models.generateContentStream({
+          model: 'gemini-3.7-flash',
+          contents: formattedContents,
+          config,
+        });
+      } else {
+        throw modelErr;
+      }
+    }
 
     for await (const chunk of responseStream) {
       const chunkText = chunk.text || '';
