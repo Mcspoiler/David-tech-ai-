@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    --gold-primary: #f59e0b;
+    --gold-hover: #d97706;
+    --gold-dark: #b45309;
+    --gold-light: #fef3c7;
+  }
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -9,11 +18,19 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(161, 161, 170, 0.3);
+    background: rgba(217, 119, 6, 0.25);
     border-radius: 9999px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(161, 161, 170, 0.5);
+    background: rgba(217, 119, 6, 0.45);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.25);
+  }
+  
+  .gold-border-glow {
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3), 0 4px 20px -2px rgba(245, 158, 11, 0.15);
   }
 }
 
@@ -26,7 +43,21 @@
   }
 }
 
+@keyframes goldShimmer {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+  }
+}
+
 .animate-spin-slow {
-  animation: spinSlow 8s linear infinite;
+  animation: spinSlow 12s linear infinite;
+}
+
+.animate-gold-shimmer {
+  animation: goldShimmer 3s ease-in-out infinite;
 }
 

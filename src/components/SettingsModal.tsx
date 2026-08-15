@@ -29,24 +29,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/10 dark:border-amber-500/15">
           <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Preferences & Settings</h2>
+            <Settings className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <h2 className="text-base font-bold text-zinc-900 dark:text-amber-50">Preferences & Settings</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-white dark:bg-[#12110e]">
           {/* Theme Selector */}
           <div>
-            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-amber-900/70 dark:text-amber-400/80 mb-2 uppercase tracking-wider">
               Color Theme
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -54,7 +54,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onClick={() => onChangeTheme('light')}
                 className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                   theme === 'light'
-                    ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-300'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-900 dark:text-amber-200 shadow-xs'
                     : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
                 }`}
               >
@@ -66,11 +66,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onClick={() => onChangeTheme('dark')}
                 className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                   theme === 'dark'
-                    ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-300'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-900 dark:text-amber-200 shadow-xs'
                     : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
                 }`}
               >
-                <Moon className="w-4 h-4 text-indigo-400" />
+                <Moon className="w-4 h-4 text-amber-400" />
                 <span>Dark</span>
               </button>
 
@@ -78,7 +78,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onClick={() => onChangeTheme('system')}
                 className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                   theme === 'system'
-                    ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-300'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-900 dark:text-amber-200 shadow-xs'
                     : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
                 }`}
               >
@@ -90,7 +90,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Default Model */}
           <div>
-            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-amber-900/70 dark:text-amber-400/80 mb-2 uppercase tracking-wider">
               Default Model
             </label>
             <select
@@ -98,7 +98,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, defaultModel: e.target.value })
               }
-              className="w-full px-3 py-2 text-xs font-medium rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-3 py-2.5 text-xs font-medium rounded-xl bg-zinc-50 dark:bg-[#181714] border border-amber-900/15 dark:border-amber-500/20 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
             >
               {MODEL_OPTIONS.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -110,11 +110,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* AgentRouter API Key Input */}
           <div className="pt-2">
-            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-amber-900/70 dark:text-amber-400/80 mb-1 uppercase tracking-wider">
               AgentRouter API Key
             </label>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
-              Required for Claude 4.7 / 5.0 and ChatGPT 5.6 models. You can set it here or in server environment variables.
+              Required for Claude 4.8 / 5.0 and ChatGPT 5.6 models. You can set it here or in server environment variables.
             </p>
             <input
               type="password"
@@ -123,17 +123,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, agentRouterApiKey: e.target.value })
               }
-              className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#181714] border border-amber-900/15 dark:border-amber-500/20 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
           {/* Data Clearance */}
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="pt-4 border-t border-amber-900/10 dark:border-amber-500/15">
             <label className="block text-xs font-bold text-red-600 dark:text-red-400 mb-1 uppercase tracking-wider">
               Danger Zone
             </label>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-              Clear all saved chats and reset local settings. This action cannot be undone.
+              Clear all saved conversations and reset local preferences.
             </p>
             <button
               onClick={() => {

@@ -73,19 +73,19 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       className={`group w-full py-5 px-4 md:px-6 transition-colors ${
         isUser
           ? 'bg-transparent'
-          : 'bg-zinc-50/70 dark:bg-zinc-900/40 border-y border-zinc-100 dark:border-zinc-800/40'
+          : 'bg-amber-50/25 dark:bg-[#12110e]/70 border-y border-amber-900/5 dark:border-amber-500/10'
       }`}
     >
       <div className="max-w-4xl mx-auto flex gap-4">
         {/* Avatar */}
         <div className="flex-shrink-0">
           {isUser ? (
-            <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-300 font-semibold text-xs shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-center text-amber-900 dark:text-amber-200 font-semibold text-xs shadow-xs">
               <User className="w-4 h-4" />
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 flex items-center justify-center text-zinc-950 shadow-md shadow-amber-500/20 border border-amber-300/40">
+              <Sparkles className="w-4 h-4 animate-gold-shimmer fill-amber-950/20" />
             </div>
           )}
         </div>
@@ -94,13 +94,13 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         <div className="flex-1 min-w-0 space-y-2">
           {/* Header row */}
           <div className="flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+            <span className="font-bold text-zinc-900 dark:text-amber-100">
               {isUser ? 'You' : 'AI Assistant'}
             </span>
             <div className="flex items-center gap-2 text-[11px]">
               <span>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               {message.latencyMs && (
-                <span className="flex items-center gap-1 text-zinc-400">
+                <span className="flex items-center gap-1 text-amber-600/70 dark:text-amber-400/70">
                   <Clock className="w-3 h-3" />
                   {(message.latencyMs / 1000).toFixed(1)}s
                 </span>
@@ -114,7 +114,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               {message.attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 max-w-[200px]"
+                  className="relative rounded-xl overflow-hidden border border-amber-200/80 dark:border-amber-500/20 bg-amber-50 dark:bg-zinc-900 max-w-[200px]"
                 >
                   <img src={att.url} alt={att.name} className="w-full h-auto max-h-48 object-cover" />
                 </div>
@@ -128,19 +128,19 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-3 text-sm rounded-xl bg-white dark:bg-zinc-900 border border-indigo-500 text-zinc-900 dark:text-zinc-100 focus:outline-none"
+                className="w-full p-3 text-sm rounded-xl bg-white dark:bg-[#151411] border border-amber-500 text-zinc-900 dark:text-zinc-100 focus:outline-none ring-2 ring-amber-500/20"
                 rows={3}
               />
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 rounded-xl transition-all cursor-pointer shadow-xs shadow-amber-500/20"
                 >
                   Save & Resend
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -161,18 +161,18 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           {/* Streaming Typing Indicator */}
           {isStreaming && message.role === 'assistant' && !message.content && (
             <div className="flex items-center gap-1.5 py-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"></span>
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-150"></span>
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-300"></span>
-              <span className="text-xs text-zinc-400 font-medium ml-1">Thinking...</span>
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span>
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce delay-150"></span>
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce delay-300"></span>
+              <span className="text-xs text-amber-700 dark:text-amber-400 font-medium ml-1">Thinking...</span>
             </div>
           )}
 
           {/* Grounding / Search Sources */}
           {message.groundingSources && message.groundingSources.length > 0 && (
-            <div className="mt-3 p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 text-xs">
-              <div className="font-semibold text-blue-900 dark:text-blue-200 mb-1.5 flex items-center gap-1.5">
-                <ExternalLink className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            <div className="mt-3 p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-xs">
+              <div className="font-semibold text-amber-900 dark:text-amber-200 mb-1.5 flex items-center gap-1.5">
+                <ExternalLink className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>Web Search Sources:</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -182,7 +182,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     href={src.uri}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 hover:underline truncate max-w-[240px]"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-[#151411] border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 hover:border-amber-400 truncate max-w-[240px]"
                   >
                     <span>{src.title}</span>
                   </a>
@@ -207,7 +207,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 dark:text-zinc-500 text-xs">
               <button
                 onClick={handleCopy}
-                className="p-1.5 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                className="p-1.5 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                 title="Copy text"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -217,8 +217,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               {'speechSynthesis' in window && (
                 <button
                   onClick={handleToggleSpeak}
-                  className={`p-1.5 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer ${
-                    isSpeaking ? 'text-indigo-600 dark:text-indigo-400' : ''
+                  className={`p-1.5 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer ${
+                    isSpeaking ? 'text-amber-600 dark:text-amber-400' : ''
                   }`}
                   title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
                 >
@@ -229,7 +229,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               {isUser && onEditPrompt && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-1.5 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer"
                   title="Edit prompt"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               {!isUser && onRegenerate && (
                 <button
                   onClick={onRegenerate}
-                  className="p-1.5 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                  className="p-1.5 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                   title="Regenerate response"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />

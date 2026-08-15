@@ -4,7 +4,14 @@ export const MODEL_OPTIONS: ModelOption[] = [
   {
     id: 'claude-5.0',
     name: 'Claude 5.0',
-    description: 'Anthropic next-gen flagship model for ultra-deep reasoning, code synthesis, and creative writing via AgentRouter.',
+    description: 'Anthropic flagship next-generation model for complex reasoning, autonomous agents, and multi-domain problem solving.',
+    badge: 'AgentRouter Pro',
+    isPro: true
+  },
+  {
+    id: 'claude-4.8',
+    name: 'Claude 4.8',
+    description: 'Advanced Claude model optimized for deep coding, mathematical proofs, nuanced reasoning, and high throughput.',
     badge: 'AgentRouter Pro',
     isPro: true
   },
@@ -17,8 +24,9 @@ export const MODEL_OPTIONS: ModelOption[] = [
   {
     id: 'chatgpt-5.6',
     name: 'ChatGPT 5.6',
-    description: 'OpenAI advanced multi-step reasoning model with high speed and exceptional instruction following.',
-    badge: 'AgentRouter'
+    description: 'OpenAI advanced multi-step reasoning model with high speed, deep context comprehension, and superior instruction following.',
+    badge: 'AgentRouter Pro',
+    isPro: true
   },
   {
     id: 'claude-3-7-sonnet',

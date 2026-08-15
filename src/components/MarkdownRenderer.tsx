@@ -36,14 +36,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
       codeBlocks.push({ id, lang: language, code: text });
 
       return `
-        <div class="code-block-wrapper my-4 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-900 shadow-sm text-sm">
-          <div class="flex items-center justify-between px-4 py-2 bg-zinc-800/80 text-zinc-300 border-b border-zinc-700/60 font-mono text-xs select-none">
-            <span class="font-medium text-zinc-400 capitalize">${language}</span>
-            <button data-code-id="${id}" class="copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-700/50 hover:bg-zinc-700 text-zinc-200 text-xs transition-all cursor-pointer">
+        <div class="code-block-wrapper my-4 rounded-xl overflow-hidden border border-amber-900/20 dark:border-amber-500/20 bg-[#161512] shadow-sm text-sm">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#201e19] text-amber-200/80 border-b border-amber-900/30 font-mono text-xs select-none">
+            <span class="font-medium text-amber-300 capitalize">${language}</span>
+            <button data-code-id="${id}" class="copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs transition-all cursor-pointer border border-amber-500/30">
               <span>Copy</span>
             </button>
           </div>
-          <pre class="p-4 overflow-x-auto text-zinc-100 font-mono text-xs leading-relaxed"><code>${highlighted}</code></pre>
+          <pre class="p-4 overflow-x-auto text-amber-50 font-mono text-xs leading-relaxed"><code>${highlighted}</code></pre>
         </div>
       `;
     };
@@ -51,7 +51,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
     // Override link renderer for security
     renderer.link = ({ href, title, text }: { href: string; title?: string | null; text: string }) => {
       const titleAttr = title ? `title="${title}"` : '';
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 font-medium underline underline-offset-2 hover:opacity-80 transition-opacity" ${titleAttr}>${text}</a>`;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-amber-700 dark:text-amber-400 font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity" ${titleAttr}>${text}</a>`;
     };
 
     marked.setOptions({
@@ -87,7 +87,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
   return (
     <div
       onClick={handleContainerClick}
-      className="prose dark:prose-invert max-w-none prose-zinc text-zinc-800 dark:text-zinc-100 leading-relaxed space-y-3 font-normal prose-headings:font-semibold prose-headings:text-zinc-900 dark:prose-headings:text-zinc-50 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-indigo-500/80 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-zinc-600 dark:prose-blockquote:text-zinc-400 prose-table:my-4 prose-th:bg-zinc-100 dark:prose-th:bg-zinc-800 prose-th:p-2.5 prose-td:p-2.5 prose-td:border prose-td:border-zinc-200 dark:prose-td:border-zinc-800"
+      className="prose dark:prose-invert max-w-none prose-zinc text-zinc-800 dark:text-zinc-100 leading-relaxed space-y-3 font-normal prose-headings:font-semibold prose-headings:text-zinc-900 dark:prose-headings:text-amber-50 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-blockquote:border-l-4 prose-blockquote:border-amber-500/80 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-zinc-600 dark:prose-blockquote:text-zinc-400 prose-table:my-4 prose-th:bg-amber-100/50 dark:prose-th:bg-amber-950/40 prose-th:p-2.5 prose-td:p-2.5 prose-td:border prose-td:border-amber-900/10 dark:prose-td:border-amber-500/20"
       dangerouslySetInnerHTML={{ __html: htmlAndCodeBlocks.rawHtml }}
     />
   );

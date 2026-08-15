@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (list.length === 0) return null;
     return (
       <div className="mb-4">
-        <div className="px-3 py-1 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+        <div className="px-3 py-1 text-[10px] font-bold text-amber-800/60 dark:text-amber-400/60 uppercase tracking-wider">
           {title}
         </div>
         <div className="space-y-0.5 mt-1">
@@ -132,16 +132,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-xs'
-                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 font-semibold shadow-xs border border-amber-300/80 dark:border-amber-600/40'
+                    : 'hover:bg-amber-50/50 dark:hover:bg-[#181714] text-zinc-700 dark:text-zinc-300 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
                   <MessageSquare
                     className={`w-4 h-4 flex-shrink-0 ${
                       isActive
-                        ? 'text-indigo-600 dark:text-indigo-400'
-                        : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-zinc-400 dark:text-zinc-500 group-hover:text-amber-600 dark:group-hover:text-amber-400'
                     }`}
                   />
 
@@ -152,19 +152,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         autoFocus
-                        className="w-full px-2 py-0.5 text-xs bg-white dark:bg-zinc-900 border border-indigo-500 rounded text-zinc-900 dark:text-zinc-100 outline-none"
+                        className="w-full px-2 py-0.5 text-xs bg-white dark:bg-zinc-900 border border-amber-500 rounded-lg text-zinc-900 dark:text-zinc-100 outline-none"
                       />
                       <button
                         type="submit"
                         onClick={(e) => handleSaveEdit(c.id, e)}
-                        className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                        className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded"
                       >
                         <Check className="w-3.5 h-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="p-1 text-zinc-400 hover:bg-zinc-100 rounded"
+                        className="p-1 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         e.stopPropagation();
                         onTogglePinChat(c.id);
                       }}
-                      className={`p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                      className={`p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-950/60 ${
                         c.isPinned ? 'text-amber-500' : 'text-zinc-400'
                       }`}
                       title={c.isPinned ? 'Unpin Chat' : 'Pin Chat'}
@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </button>
                     <button
                       onClick={(e) => handleStartEdit(c, e)}
-                      className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+                      className="p-1 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-zinc-800 rounded"
                       title="Rename Title"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -227,32 +227,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/80 flex flex-col transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-[#fbfaf8] dark:bg-[#0d0c0a] border-r border-amber-900/10 dark:border-amber-500/15 flex flex-col transition-transform duration-200 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Top Header & New Chat button */}
-        <div className="p-3 border-b border-zinc-200/60 dark:border-zinc-800/60 space-y-2">
+        <div className="p-3.5 border-b border-amber-900/10 dark:border-amber-500/15 space-y-2.5">
           <button
             onClick={() => {
               onNewChat();
               onCloseMobile();
             }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm shadow-indigo-600/30 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-zinc-950 font-bold text-xs shadow-sm shadow-amber-500/30 border border-amber-300/60 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
           >
-            <Plus className="w-4 h-4" />
-            <span>New Chat</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>New Conversation</span>
           </button>
 
           {/* Search box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/60 dark:text-amber-400/60" />
             <input
               type="text"
               placeholder="Search conversations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-[#151411] border border-amber-900/15 dark:border-amber-500/20 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
             />
           </div>
         </div>
@@ -260,9 +260,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Scrollable Conversation History */}
         <div className="flex-1 overflow-y-auto px-2 py-3 custom-scrollbar">
           {conversations.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <MessageSquare className="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700 mb-2" />
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <div className="px-4 py-10 text-center">
+              <MessageSquare className="w-8 h-8 mx-auto text-amber-300/60 dark:text-amber-900/60 mb-2" />
+              <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                 No chat history yet
               </p>
               <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">
@@ -281,14 +281,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Persona Switcher Quick Section */}
-        <div className="p-3 border-t border-zinc-200/60 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-900/40">
+        <div className="p-3 border-t border-amber-900/10 dark:border-amber-500/15 bg-amber-50/40 dark:bg-amber-950/20">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-amber-800/70 dark:text-amber-400/70 uppercase tracking-wider">
               Active Persona
             </span>
             <button
               onClick={onOpenPersonaModal}
-              className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
             >
               Change
             </button>
@@ -296,14 +296,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div
             onClick={onOpenPersonaModal}
-            className="flex items-center gap-2.5 p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 cursor-pointer transition-colors"
+            className="flex items-center gap-2.5 p-2 rounded-xl bg-white dark:bg-[#151411] hover:bg-amber-50/80 dark:hover:bg-amber-950/40 border border-amber-200/70 dark:border-amber-500/20 text-zinc-800 dark:text-zinc-200 cursor-pointer transition-colors"
           >
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/20">
               <Sparkles className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold truncate">{activePersona.name}</div>
-              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
+              <div className="text-xs font-semibold truncate text-zinc-900 dark:text-zinc-100">{activePersona.name}</div>
+              <div className="text-[10px] text-amber-700 dark:text-amber-400 truncate">
                 {activePersona.badge}
               </div>
             </div>
@@ -312,15 +312,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom Actions */}
         {conversations.length > 0 && (
-          <div className="p-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-            <span className="px-2">{conversations.length} chats</span>
+          <div className="p-2.5 border-t border-amber-900/10 dark:border-amber-500/15 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="px-2 font-medium text-[11px]">{conversations.length} conversations</span>
             <button
               onClick={onClearAllChats}
-              className="flex items-center gap-1 px-2 py-1 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer text-[11px]"
               title="Clear all conversation history"
             >
               <Trash className="w-3.5 h-3.5" />
-              <span>Clear history</span>
+              <span>Clear all</span>
             </button>
           </div>
         )}

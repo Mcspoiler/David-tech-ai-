@@ -134,13 +134,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="sticky bottom-0 z-10 p-3 md:p-4 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-zinc-950 dark:via-zinc-950/90 dark:to-transparent">
+    <div className="sticky bottom-0 z-10 p-3 md:p-4 bg-gradient-to-t from-[#faf9f5] via-[#faf9f5]/95 to-transparent dark:from-[#0c0b09] dark:via-[#0c0b09]/95 dark:to-transparent">
       <div className="max-w-4xl mx-auto">
         {/* Attachment Previews */}
         {attachments.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2 p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <div className="flex flex-wrap gap-2 mb-2 p-2 rounded-xl bg-white dark:bg-[#151411] border border-amber-900/15 dark:border-amber-500/20 shadow-xs">
             {attachments.map((att) => (
-              <div key={att.id} className="relative group rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 w-16 h-16">
+              <div key={att.id} className="relative group rounded-lg overflow-hidden border border-amber-300 dark:border-amber-700 w-16 h-16">
                 <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
                 <button
                   type="button"
@@ -157,7 +157,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {/* Main Input Box Container */}
         <form
           onSubmit={handleSubmit}
-          className="relative rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 shadow-lg shadow-zinc-200/50 dark:shadow-none focus-within:border-indigo-500 dark:focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-hidden"
+          className="relative rounded-2xl bg-white dark:bg-[#151411] border border-amber-900/15 dark:border-amber-500/25 shadow-lg shadow-amber-500/5 focus-within:border-amber-500 dark:focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 transition-all overflow-hidden"
         >
           <textarea
             ref={textareaRef}
@@ -176,17 +176,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 type="button"
                 onClick={onOpenPersonaModal}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 text-xs font-semibold transition-colors cursor-pointer border border-amber-200/70 dark:border-amber-800/60"
                 title="Change Persona"
               >
-                <Sparkles className="w-3 h-3 text-indigo-500" />
+                <Sparkles className="w-3 h-3 text-amber-500" />
                 <span className="truncate max-w-[120px]">{activePersona.name}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer"
                 title="Attach Image"
               >
                 <Paperclip className="w-4 h-4" />
@@ -206,7 +206,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                   isListening
                     ? 'bg-red-500 text-white animate-pulse'
-                    : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    : 'text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                 }`}
                 title={isListening ? 'Stop Listening' : 'Voice Input'}
               >
@@ -234,10 +234,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 <button
                   type="submit"
                   disabled={!text.trim() && attachments.length === 0}
-                  className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white shadow-sm shadow-indigo-600/30 transition-all cursor-pointer"
+                  className="p-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:opacity-40 disabled:hover:from-amber-500 disabled:hover:to-amber-600 text-zinc-950 shadow-md shadow-amber-500/25 border border-amber-300/60 transition-all cursor-pointer hover:scale-105 active:scale-95"
                   title="Send message"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 stroke-[2.5]" />
                 </button>
               )}
             </div>
@@ -245,7 +245,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </form>
 
         <p className="text-[11px] text-center text-zinc-400 dark:text-zinc-500 mt-2">
-          AI Assistant can make mistakes. Verify important factual details.
+          AI Assistant can make mistakes. Verify critical facts and details.
         </p>
       </div>
     </div>

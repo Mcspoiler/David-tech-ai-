@@ -400,7 +400,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans antialiased">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#faf9f5] dark:bg-[#0c0b09] text-zinc-900 dark:text-zinc-100 font-sans antialiased">
       {/* Sidebar Navigation */}
       <Sidebar
         conversations={conversations}
