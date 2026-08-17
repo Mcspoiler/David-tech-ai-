@@ -28,6 +28,9 @@ import {
   AppSettings,
 } from './lib/storage';
 
+const SUPABASE_EDGE_FUNCTION_URL =
+  'https://kbfokyqxuqzypaasfvoj.supabase.co/functions/v1/super-processor';
+
 export default function App() {
   // Load initial settings & state
   const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
@@ -160,17 +163,19 @@ export default function App() {
     setIsStreaming(false);
   };
 
-  // Generate Title with AI after first message
-  const generateTitleForChat = async (chatId: string, firstPrompt: string) => {
+  // Generate Title for chat
+  const generateTitleForChat = (chatId: string, firstPrompt: string) => {
     try {
-      const res = await fetch('/api/title', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: firstPrompt }),
-      });
-      const data = await res.json();
-      if (data.title) {
-        handleRenameChat(chatId, data.title);
+      const cleanPrompt = firstPrompt
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/[#*_`\n\r]/g, ' ')
+        .trim();
+      const words = cleanPrompt.split(/\s+/).filter(Boolean).slice(0, 5);
+      if (words.length > 0) {
+        let title = words.join(' ');
+        if (title.length > 32) title = title.substring(0, 32) + '...';
+        title = title.charAt(0).toUpperCase() + title.slice(1);
+        handleRenameChat(chatId, title);
       }
     } catch (e) {
       console.error('Failed to generate title', e);
@@ -232,11 +237,15 @@ export default function App() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream, text/plain, */*',
+        },
         body: JSON.stringify({
           messages: updatedMessages.slice(0, -1), // send up to user message
+          prompt: userText,
           model: currentModel,
           systemInstruction: activePersona.systemPrompt,
           enableSearchGrounding,
@@ -250,88 +259,122 @@ export default function App() {
         let errDetail = `HTTP ${response.status}`;
         try {
           const errJson = await response.json();
-          errDetail = errJson.error || errDetail;
+          errDetail = errJson.error || errJson.message || errDetail;
         } catch {
           // ignore
         }
-        throw new Error(`Server connection error: ${errDetail}`);
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder('utf-8');
-
-      if (!reader) {
-        throw new Error('Response stream reader is unavailable');
+        throw new Error(`Edge function error: ${errDetail}`);
       }
 
       let accumulatedContent = '';
       let groundingSources: any[] = [];
-      let buffer = '';
-      let streamError: string | null = null;
+      const contentType = response.headers.get('content-type') || '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Non-streaming JSON response support
+      if (contentType.includes('application/json') && !contentType.includes('event-stream')) {
+        const json = await response.json();
+        accumulatedContent =
+          json.response ||
+          json.content ||
+          json.text ||
+          json.message?.content ||
+          json.output ||
+          (typeof json === 'string' ? json : JSON.stringify(json, null, 2));
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        if (json.groundingSources && Array.isArray(json.groundingSources)) {
+          groundingSources = json.groundingSources;
+        }
+      } else {
+        // Stream reader (handles SSE streams and chunked text)
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder('utf-8');
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith('data:')) continue;
-          const dataStr = trimmed.slice(5).trim();
+        if (!reader) {
+          throw new Error('Response stream reader is unavailable');
+        }
 
-          if (dataStr === '[DONE]') {
-            break;
+        let buffer = '';
+        let streamError: string | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunkText = decoder.decode(value, { stream: true });
+          buffer += chunkText;
+
+          if (buffer.includes('data:')) {
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith('data:')) continue;
+              const dataStr = trimmed.slice(5).trim();
+
+              if (dataStr === '[DONE]') {
+                break;
+              }
+
+              try {
+                const data = JSON.parse(dataStr);
+
+                if (data.error) {
+                  streamError = data.error;
+                  break;
+                }
+
+                if (data.chunk) {
+                  accumulatedContent += data.chunk;
+                } else if (data.content) {
+                  accumulatedContent += data.content;
+                } else if (data.text) {
+                  accumulatedContent += data.text;
+                } else if (data.choices?.[0]?.delta?.content) {
+                  accumulatedContent += data.choices[0].delta.content;
+                }
+
+                if (data.groundingSources && Array.isArray(data.groundingSources)) {
+                  groundingSources = data.groundingSources;
+                }
+              } catch {
+                if (dataStr && dataStr !== '[DONE]') {
+                  accumulatedContent += dataStr;
+                }
+              }
+            }
+          } else {
+            // Raw text streaming
+            accumulatedContent += chunkText;
           }
 
-          try {
-            const data = JSON.parse(dataStr);
+          // Update state with streamed chunk
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.id !== targetChatId) return c;
+              const newMsgs = c.messages.map((m) => {
+                if (m.id === assistantMsgId) {
+                  return {
+                    ...m,
+                    content: accumulatedContent,
+                    groundingSources:
+                      groundingSources.length > 0 ? groundingSources : m.groundingSources,
+                  };
+                }
+                return m;
+              });
+              return { ...c, messages: newMsgs };
+            })
+          );
 
-            if (data.error) {
-              streamError = data.error;
-              break;
-            }
-
-            if (data.chunk) {
-              accumulatedContent += data.chunk;
-            }
-
-            if (data.groundingSources && Array.isArray(data.groundingSources)) {
-              groundingSources = data.groundingSources;
-            }
-
-            // Update state with streamed chunk
-            setConversations((prev) =>
-              prev.map((c) => {
-                if (c.id !== targetChatId) return c;
-                const newMsgs = c.messages.map((m) => {
-                  if (m.id === assistantMsgId) {
-                    return {
-                      ...m,
-                      content: accumulatedContent,
-                      groundingSources:
-                        groundingSources.length > 0 ? groundingSources : m.groundingSources,
-                    };
-                  }
-                  return m;
-                });
-                return { ...c, messages: newMsgs };
-              })
-            );
-          } catch {
-            // Skip unparseable lines
+          if (streamError) {
+            throw new Error(streamError);
           }
         }
 
         if (streamError) {
           throw new Error(streamError);
         }
-      }
-
-      if (streamError) {
-        throw new Error(streamError);
       }
 
       // Complete message state
@@ -375,7 +418,7 @@ export default function App() {
                 return {
                   ...m,
                   status: 'error' as const,
-                  error: err.message || 'Failed to communicate with AI server.',
+                  error: err.message || 'Failed to communicate with Supabase edge function.',
                 };
               }
               return m;
