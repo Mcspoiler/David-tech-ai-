@@ -12,6 +12,9 @@ export const HYPER_SERVICE_FUNCTION_URL =
   import.meta.env.VITE_SUPABASE_FUNCTION_URL ||
   `${SUPABASE_URL}/functions/v1/hyper-service`;
 
+export const EDGE_FUNCTION_URL = HYPER_SERVICE_FUNCTION_URL;
+export const AI_CHAT_FUNCTION_URL = HYPER_SERVICE_FUNCTION_URL;
+
 // Create Supabase client singleton
 export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {

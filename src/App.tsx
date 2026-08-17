@@ -30,6 +30,7 @@ import {
 } from './lib/storage';
 import {
   supabase,
+  EDGE_FUNCTION_URL,
   HYPER_SERVICE_FUNCTION_URL,
   SUPABASE_ANON_KEY,
 } from './lib/supabase';
@@ -284,6 +285,17 @@ export default function App() {
 
   // Main Send Message Handler
   const handleSendMessage = async (userText: string, attachments?: Attachment[]) => {
+    // Ensure user is authenticated
+    const {
+      data: { session: currentSession },
+    } = await supabase.auth.getSession();
+
+    if (!currentSession) {
+      alert('Please log in first to chat and use AI models.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (isStreaming) handleStopStreaming();
 
     let targetChat = activeChat;
@@ -332,8 +344,8 @@ export default function App() {
     );
 
     // Save user message to DB in background
-    if (user) {
-      saveMessageDb(targetChatId, userMsg, user.id, currentModel);
+    if (user || currentSession.user) {
+      saveMessageDb(targetChatId, userMsg, currentSession.user.id, currentModel);
     }
 
     setIsStreaming(true);
@@ -342,25 +354,29 @@ export default function App() {
     abortControllerRef.current = controller;
 
     try {
-      const authToken = session?.access_token || SUPABASE_ANON_KEY;
+      // Format messages clean for the AI Edge Function / AgentRouter
+      const messagesPayload = updatedMessages.slice(0, -1).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
 
-      const response = await fetch(HYPER_SERVICE_FUNCTION_URL, {
+      const response = await fetch(EDGE_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${currentSession.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
           Accept: 'application/json, text/event-stream, text/plain, */*',
         },
         body: JSON.stringify({
-          messages: updatedMessages.slice(0, -1), // send up to user message
+          messages: messagesPayload,
+          model: currentModel || 'claude-5.0',
           conversationId: targetChatId,
-          prompt: userText,
-          model: currentModel,
           personaId: activePersona.id,
+          prompt: userText,
           systemInstruction: activePersona.systemPrompt,
           enableSearchGrounding,
           temperature: activePersona.temperature,
-          agentRouterApiKey: settings.agentRouterApiKey,
         }),
         signal: controller.signal,
       });
