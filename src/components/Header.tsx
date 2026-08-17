@@ -33,6 +33,9 @@ interface HeaderProps {
   onOpenExportModal: () => void;
   hasActiveChat?: boolean;
   onExitChat?: () => void;
+  userEmail?: string | null;
+  onOpenAuth?: () => void;
+  onSignOut?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -50,6 +53,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenExportModal,
   hasActiveChat = false,
   onExitChat,
+  userEmail,
+  onOpenAuth,
+  onSignOut,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [filterProvider, setFilterProvider] = useState<'all' | ModelProvider>('all');
@@ -355,6 +361,38 @@ export const Header: React.FC<HeaderProps> = ({
             <Moon className="w-4 h-4 text-zinc-600" />
           )}
         </button>
+
+        {userEmail ? (
+          <div className="flex items-center gap-1 pl-1 border-l border-amber-900/10 dark:border-amber-500/15">
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-500/30 text-xs font-semibold text-amber-900 dark:text-amber-200"
+              title={`Logged in as ${userEmail}`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="max-w-[100px] truncate hidden sm:inline">{userEmail.split('@')[0]}</span>
+            </div>
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="p-1.5 text-zinc-400 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          onOpenAuth && (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-amber-600 dark:hover:text-amber-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-amber-100/60 dark:hover:bg-amber-950/40 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer"
+              title="Sign in with Supabase"
+            >
+              <Bot className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden sm:inline">Sign In</span>
+            </button>
+          )
+        )}
       </div>
     </header>
   );

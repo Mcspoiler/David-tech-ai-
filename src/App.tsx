@@ -6,6 +6,7 @@ import { ChatInput } from './components/ChatInput';
 import { PersonaModal } from './components/PersonaModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportModal } from './components/ExportModal';
+import { AuthModal } from './components/AuthModal';
 
 import {
   ChatConversation,
@@ -27,15 +28,30 @@ import {
   saveStoredSettings,
   AppSettings,
 } from './lib/storage';
-
-const SUPABASE_EDGE_FUNCTION_URL =
-  'https://kbfokyqxuqzypaasfvoj.supabase.co/functions/v1/super-processor';
+import {
+  supabase,
+  HYPER_SERVICE_FUNCTION_URL,
+  SUPABASE_ANON_KEY,
+} from './lib/supabase';
+import {
+  fetchUserConversations,
+  upsertConversationDb,
+  saveMessageDb,
+  deleteConversationDb,
+  clearAllConversationsDb,
+} from './lib/supabaseDb';
+import { User, Session } from '@supabase/supabase-js';
 
 export default function App() {
   // Load initial settings & state
   const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
   const [conversations, setConversations] = useState<ChatConversation[]>(getStoredConversations);
   const [activeId, setActiveId] = useState<string | null>(getStoredActiveId);
+
+  // Supabase Auth State
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [activePersona, setActivePersona] = useState<Persona>(() => {
     return (
@@ -58,6 +74,52 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Initialize Supabase Auth & Listen for changes
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // When user logs in, load cloud conversations from Supabase
+  useEffect(() => {
+    if (!user) return;
+
+    let isMounted = true;
+    fetchUserConversations(user.id).then((cloudConvs) => {
+      if (!isMounted) return;
+      if (cloudConvs.length > 0) {
+        // Merge cloud with local, avoiding duplicates
+        setConversations((prev) => {
+          const map = new Map<string, ChatConversation>();
+          // Put cloud conversations first
+          cloudConvs.forEach((c) => map.set(c.id, c));
+          // Put remaining local ones that aren't cloud
+          prev.forEach((c) => {
+            if (!map.has(c.id)) map.set(c.id, c);
+          });
+          return Array.from(map.values());
+        });
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
   // Sync dark class on documentElement
   useEffect(() => {
     const root = document.documentElement;
@@ -66,7 +128,6 @@ export default function App() {
     } else if (theme === 'light') {
       root.classList.remove('dark');
     } else {
-      // system theme
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (systemDark) root.classList.add('dark');
       else root.classList.remove('dark');
@@ -74,7 +135,7 @@ export default function App() {
     saveStoredTheme(theme);
   }, [theme]);
 
-  // Sync state to localStorage
+  // Sync state to localStorage for offline cache
   useEffect(() => {
     saveConversations(conversations);
   }, [conversations]);
@@ -102,8 +163,14 @@ export default function App() {
 
     setConversations((prev) => [newChat, ...prev]);
     setActiveId(newChat.id);
+
+    // Save to DB if authenticated
+    if (user) {
+      upsertConversationDb(newChat, user.id);
+    }
+
     return newChat;
-  }, [activePersona, currentModel, enableSearchGrounding]);
+  }, [activePersona, currentModel, enableSearchGrounding, user]);
 
   // Handle New Chat Click
   const handleNewChat = () => {
@@ -132,6 +199,9 @@ export default function App() {
   // Delete Chat
   const handleDeleteChat = (id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (user) {
+      deleteConversationDb(id, user.id);
+    }
     if (activeId === id) {
       const remaining = conversations.filter((c) => c.id !== id);
       setActiveId(remaining.length > 0 ? remaining[0].id : null);
@@ -141,14 +211,28 @@ export default function App() {
   // Rename Chat Title
   const handleRenameChat = (id: string, newTitle: string) => {
     setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, title: newTitle, updatedAt: Date.now() } : c))
+      prev.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, title: newTitle, updatedAt: Date.now() };
+          if (user) upsertConversationDb(updated, user.id);
+          return updated;
+        }
+        return c;
+      })
     );
   };
 
   // Pin Chat
   const handleTogglePinChat = (id: string) => {
     setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isPinned: !c.isPinned } : c))
+      prev.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, isPinned: !c.isPinned };
+          if (user) upsertConversationDb(updated, user.id);
+          return updated;
+        }
+        return c;
+      })
     );
   };
 
@@ -157,6 +241,9 @@ export default function App() {
     if (confirm('Are you sure you want to clear all conversation history?')) {
       setConversations([]);
       setActiveId(null);
+      if (user) {
+        clearAllConversationsDb(user.id);
+      }
     }
   };
 
@@ -186,6 +273,13 @@ export default function App() {
     } catch (e) {
       console.error('Failed to generate title', e);
     }
+  };
+
+  // Sign out handler
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
   };
 
   // Main Send Message Handler
@@ -237,22 +331,32 @@ export default function App() {
       )
     );
 
+    // Save user message to DB in background
+    if (user) {
+      saveMessageDb(targetChatId, userMsg, user.id, currentModel);
+    }
+
     setIsStreaming(true);
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
+      const authToken = session?.access_token || SUPABASE_ANON_KEY;
+
+      const response = await fetch(HYPER_SERVICE_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
           Accept: 'application/json, text/event-stream, text/plain, */*',
         },
         body: JSON.stringify({
           messages: updatedMessages.slice(0, -1), // send up to user message
+          conversationId: targetChatId,
           prompt: userText,
           model: currentModel,
+          personaId: activePersona.id,
           systemInstruction: activePersona.systemPrompt,
           enableSearchGrounding,
           temperature: activePersona.temperature,
@@ -388,22 +492,32 @@ export default function App() {
       const latency = endTime - startTime;
       const wordCount = accumulatedContent.trim().split(/\s+/).length;
 
+      const finalAssistantMsg: ChatMessage = {
+        id: assistantMsgId,
+        role: 'assistant',
+        content: accumulatedContent,
+        timestamp: Date.now(),
+        status: 'complete' as const,
+        latencyMs: latency,
+        wordCount,
+        groundingSources,
+      };
+
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== targetChatId) return c;
           const finalMsgs = c.messages.map((m) => {
             if (m.id === assistantMsgId) {
-              return {
-                ...m,
-                content: accumulatedContent,
-                status: 'complete' as const,
-                latencyMs: latency,
-                wordCount,
-              };
+              return finalAssistantMsg;
             }
             return m;
           });
-          return { ...c, messages: finalMsgs };
+          const updatedChat = { ...c, messages: finalMsgs, updatedAt: Date.now() };
+          if (user) {
+            upsertConversationDb(updatedChat, user.id);
+            saveMessageDb(targetChatId, finalAssistantMsg, user.id, currentModel);
+          }
+          return updatedChat;
         })
       );
 
@@ -447,7 +561,6 @@ export default function App() {
     if (lastUserIndex === -1) return;
 
     const lastUserMsg = messages[lastUserIndex];
-    // Remove last assistant message
     const trimmed = messages.slice(0, lastUserIndex);
 
     setConversations((prev) =>
@@ -476,7 +589,14 @@ export default function App() {
     setCurrentModel(modelId);
     if (activeId) {
       setConversations((prev) =>
-        prev.map((c) => (c.id === activeId ? { ...c, model: modelId, updatedAt: Date.now() } : c))
+        prev.map((c) => {
+          if (c.id === activeId) {
+            const updated = { ...c, model: modelId, updatedAt: Date.now() };
+            if (user) upsertConversationDb(updated, user.id);
+            return updated;
+          }
+          return c;
+        })
       );
     }
   };
@@ -498,6 +618,9 @@ export default function App() {
         isOpen={isSidebarOpen}
         onCloseMobile={() => setIsSidebarOpen(false)}
         onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
+        userEmail={user?.email}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Workspace */}
@@ -517,6 +640,9 @@ export default function App() {
           onOpenExportModal={() => setIsExportModalOpen(true)}
           hasActiveChat={Boolean(activeChat && activeChat.messages.length > 0)}
           onExitChat={handleExitChat}
+          userEmail={user?.email}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onSignOut={handleSignOut}
         />
 
         <ChatArea
@@ -564,6 +690,7 @@ export default function App() {
         onClearAllData={() => {
           setConversations([]);
           setActiveId(null);
+          if (user) clearAllConversationsDb(user.id);
         }}
       />
 
@@ -574,6 +701,15 @@ export default function App() {
         onImportChat={(imported) => {
           setConversations((prev) => [imported, ...prev]);
           setActiveId(imported.id);
+          if (user) upsertConversationDb(imported, user.id);
+        }}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
         }}
       />
     </div>
