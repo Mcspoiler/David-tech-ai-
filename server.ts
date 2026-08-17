@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 app.use(express.json({ limit: '20mb' }));
 
@@ -18,15 +18,10 @@ app.use(express.json({ limit: '20mb' }));
 function getGeminiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not configured. Please set your Gemini API key in Settings > Secrets.');
+    throw new Error('GEMINI_API_KEY environment variable is not configured. Please verify your GEMINI_API_KEY in Settings > Secrets.');
   }
   return new GoogleGenAI({
     apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
   });
 }
 
@@ -313,9 +308,14 @@ app.post('/api/chat', async (req: Request, res: Response) => {
         parts.push({ text: msg.content });
       }
 
+      // Ensure at least one part exists
+      if (parts.length === 0) {
+        parts.push({ text: ' ' });
+      }
+
       return {
         role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: parts.length > 0 ? parts : [{ text: '' }],
+        parts,
       };
     });
 
@@ -341,16 +341,14 @@ app.post('/api/chat', async (req: Request, res: Response) => {
         config,
       });
     } catch (modelErr: any) {
-      // If paid/pro model fails, fallback to gemini-3.7-flash
-      if (targetModel !== 'gemini-3.7-flash') {
-        responseStream = await ai.models.generateContentStream({
-          model: 'gemini-3.7-flash',
-          contents: formattedContents,
-          config,
-        });
-      } else {
-        throw modelErr;
-      }
+      console.warn(`Streaming with ${targetModel} failed:`, modelErr.message);
+      // If tools or pro model failed, retry without search tools with gemini-3.7-flash
+      delete config.tools;
+      responseStream = await ai.models.generateContentStream({
+        model: 'gemini-3.7-flash',
+        contents: formattedContents,
+        config,
+      });
     }
 
     for await (const chunk of responseStream) {
@@ -393,7 +391,7 @@ async function startServer() {
       server: {
         middlewareMode: true,
         host: '0.0.0.0',
-        port: Number(PORT),
+        port: PORT,
       },
       appType: 'spa',
     });
@@ -405,7 +403,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 AI Studio Chat Server running at http://0.0.0.0:${PORT}`);
   });
 }

@@ -247,19 +247,27 @@ export default function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
+        let errDetail = `HTTP ${response.status}`;
+        try {
+          const errJson = await response.json();
+          errDetail = errJson.error || errDetail;
+        } catch {
+          // ignore
+        }
+        throw new Error(`Server connection error: ${errDetail}`);
       }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder('utf-8');
 
       if (!reader) {
-        throw new Error('Response stream reader unavailable');
+        throw new Error('Response stream reader is unavailable');
       }
 
       let accumulatedContent = '';
       let groundingSources: any[] = [];
       let buffer = '';
+      let streamError: string | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -282,7 +290,8 @@ export default function App() {
             const data = JSON.parse(dataStr);
 
             if (data.error) {
-              throw new Error(data.error);
+              streamError = data.error;
+              break;
             }
 
             if (data.chunk) {
@@ -311,12 +320,18 @@ export default function App() {
                 return { ...c, messages: newMsgs };
               })
             );
-          } catch (e: any) {
-            if (e.message) {
-              console.error('SSE JSON parse error:', e);
-            }
+          } catch {
+            // Skip unparseable lines
           }
         }
+
+        if (streamError) {
+          throw new Error(streamError);
+        }
+      }
+
+      if (streamError) {
+        throw new Error(streamError);
       }
 
       // Complete message state
@@ -351,7 +366,7 @@ export default function App() {
       if (err.name === 'AbortError') {
         console.log('Stream aborted by user');
       } else {
-        console.error('Chat error:', err);
+        console.error('Chat stream error:', err);
         setConversations((prev) =>
           prev.map((c) => {
             if (c.id !== targetChatId) return c;
@@ -360,7 +375,7 @@ export default function App() {
                 return {
                   ...m,
                   status: 'error' as const,
-                  error: err.message || 'Failed to stream response from AI model.',
+                  error: err.message || 'Failed to communicate with AI server.',
                 };
               }
               return m;
@@ -396,6 +411,14 @@ export default function App() {
   // Edit user prompt and regenerate
   const handleEditPrompt = (newPrompt: string) => {
     if (!activeChat) return;
+    const messages = activeChat.messages;
+    const lastUserIndex = messages.findLastIndex((m) => m.role === 'user');
+    if (lastUserIndex !== -1) {
+      const trimmed = messages.slice(0, lastUserIndex);
+      setConversations((prev) =>
+        prev.map((c) => (c.id === activeId ? { ...c, messages: trimmed } : c))
+      );
+    }
     handleSendMessage(newPrompt);
   };
 
