@@ -22,6 +22,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleExportMarkdown = () => {
@@ -48,7 +58,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         const raw = event.target?.result as string;
         const parsed = JSON.parse(raw);
         if (parsed && parsed.title && Array.isArray(parsed.messages)) {
-          // assign new ID to avoid conflict
           parsed.id = `chat_${Date.now()}`;
           parsed.updatedAt = Date.now();
           onImportChat(parsed);
@@ -65,8 +74,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/10 dark:border-amber-500/15">
           <div className="flex items-center gap-2">
@@ -75,9 +90,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-500 hover:text-amber-900 dark:hover:text-amber-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-amber-950/60 rounded-lg transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+            title="Exit (Esc)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span>Exit</span>
           </button>
         </div>
 
@@ -129,6 +146,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               className="hidden"
             />
           </div>
+        </div>
+
+        {/* Footer with Exit Button */}
+        <div className="flex items-center justify-end px-6 py-3 bg-zinc-50 dark:bg-[#151411] border-t border-amber-900/10 dark:border-amber-500/15">
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+          >
+            Exit
+          </button>
         </div>
       </div>
     </div>

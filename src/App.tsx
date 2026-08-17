@@ -111,6 +111,12 @@ export default function App() {
     createNewChat();
   };
 
+  // Exit Chat / Return to Home Dashboard
+  const handleExitChat = () => {
+    if (isStreaming) handleStopStreaming();
+    setActiveId(null);
+  };
+
   // Select Chat
   const handleSelectChat = (id: string) => {
     if (isStreaming) handleStopStreaming();
@@ -509,6 +515,8 @@ export default function App() {
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           onOpenSettings={() => setIsSettingsModalOpen(true)}
           onOpenExportModal={() => setIsExportModalOpen(true)}
+          hasActiveChat={Boolean(activeChat && activeChat.messages.length > 0)}
+          onExitChat={handleExitChat}
         />
 
         <ChatArea
@@ -521,6 +529,7 @@ export default function App() {
           onRegenerate={handleRegenerate}
           onEditPrompt={handleEditPrompt}
           onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
+          onExitChat={handleExitChat}
         />
 
         <ChatInput

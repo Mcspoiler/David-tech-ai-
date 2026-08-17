@@ -33,6 +33,16 @@ export const PersonaModal: React.FC<PersonaModalProps> = ({
   const [customPrompt, setCustomPrompt] = useState('');
   const [customTemp, setCustomTemp] = useState(0.7);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const getIcon = (iconName: string) => {
@@ -79,8 +89,14 @@ export const PersonaModal: React.FC<PersonaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/10 dark:border-amber-500/15">
           <div className="flex items-center gap-2">
@@ -91,9 +107,11 @@ export const PersonaModal: React.FC<PersonaModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-500 hover:text-amber-900 dark:hover:text-amber-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-amber-950/60 rounded-lg transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+            title="Exit Persona Selection (Esc)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span>Exit</span>
           </button>
         </div>
 
@@ -225,6 +243,21 @@ export const PersonaModal: React.FC<PersonaModalProps> = ({
             </form>
           )}
         </div>
+
+        {/* Modal Footer */}
+        {!isCustomMode && (
+          <div className="flex items-center justify-between px-6 py-3 bg-zinc-50 dark:bg-[#151411] border-t border-amber-900/10 dark:border-amber-500/15">
+            <span className="text-[11px] text-zinc-500">
+              Active: <strong className="text-amber-700 dark:text-amber-300">{activePersona.name}</strong>
+            </span>
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+            >
+              Exit
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

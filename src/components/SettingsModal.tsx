@@ -23,11 +23,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeTheme,
   onClearAllData,
 }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/10 dark:border-amber-500/15">
           <div className="flex items-center gap-2">
@@ -36,9 +52,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-amber-700 dark:hover:text-amber-300 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-500 hover:text-amber-900 dark:hover:text-amber-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-amber-950/60 rounded-lg transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+            title="Exit Settings (Esc)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span>Exit</span>
           </button>
         </div>
 
@@ -164,6 +182,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <span>Clear All Storage Data</span>
             </button>
           </div>
+        </div>
+
+        {/* Footer with Exit Button */}
+        <div className="flex items-center justify-end px-6 py-3 bg-zinc-50 dark:bg-[#151411] border-t border-amber-900/10 dark:border-amber-500/15">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-yellow-600 text-zinc-950 rounded-xl shadow-xs transition-all cursor-pointer"
+          >
+            <Check className="w-4 h-4" />
+            <span>Save & Exit</span>
+          </button>
         </div>
       </div>
     </div>

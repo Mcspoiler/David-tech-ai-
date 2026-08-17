@@ -233,6 +233,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Top Header & New Chat button */}
         <div className="p-3.5 border-b border-amber-900/10 dark:border-amber-500/15 space-y-2.5">
+          <div className="flex items-center justify-between pb-1 md:hidden">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span className="font-bold text-xs text-zinc-900 dark:text-zinc-100">Menu & History</span>
+            </div>
+            <button
+              onClick={onCloseMobile}
+              className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-lg cursor-pointer"
+              title="Close menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
           <button
             onClick={() => {
               onNewChat();

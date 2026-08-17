@@ -12,6 +12,8 @@ import {
   Bot,
   Zap,
   Check,
+  LogOut,
+  Home,
 } from 'lucide-react';
 import { MODEL_OPTIONS, PROVIDER_META } from '../lib/models';
 import { ModelProvider, Persona, ThemeMode } from '../types/chat';
@@ -29,6 +31,8 @@ interface HeaderProps {
   onToggleSidebar: () => void;
   onOpenSettings: () => void;
   onOpenExportModal: () => void;
+  hasActiveChat?: boolean;
+  onExitChat?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,6 +48,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleSidebar,
   onOpenSettings,
   onOpenExportModal,
+  hasActiveChat = false,
+  onExitChat,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [filterProvider, setFilterProvider] = useState<'all' | ModelProvider>('all');
@@ -297,8 +303,19 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
 
-      {/* Right section: New Chat, Export, Settings, Theme */}
+      {/* Right section: Exit Chat, New Chat, Export, Settings, Theme */}
       <div className="flex items-center gap-1.5">
+        {hasActiveChat && onExitChat && (
+          <button
+            onClick={onExitChat}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+            title="Exit active conversation and return to home page"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Exit Chat</span>
+          </button>
+        )}
+
         <button
           onClick={onNewChat}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-zinc-950 text-xs font-bold shadow-sm shadow-amber-500/30 border border-amber-300/60 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
